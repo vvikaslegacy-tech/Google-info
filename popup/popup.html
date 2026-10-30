@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Premium Google Info Search</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-icon-wrap google-icon-wrap">
+            <svg width="28" height="28" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-label="Google">
+              <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
+              <path fill="#34A853" d="M6.3 14.7l7 5.1C15 16.1 19.1 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 16.3 2 9.7 7.4 6.3 14.7z"/>
+              <path fill="#FBBC05" d="M24 46c5.9 0 10.9-2 14.5-5.4l-6.7-5.5C29.8 36.9 27 38 24 38c-6 0-11.1-4-12.9-9.6l-7 5.4C7.8 41.8 15.3 46 24 46z"/>
+              <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.9 2.7-2.6 4.9-4.8 6.5l6.7 5.5C41.7 37.3 45 31.2 45 24c0-1.3-.2-2.7-.5-4z"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>Premium Google Info Search</h1>
+            <div class="status-indicator-wrap">
+              <span class="status-dot" aria-hidden="true"></span>
+              <p id="sessionStatus">Initializing...</p>
+            </div>
+          </div>
+        </div>
+        <button id="refreshSession" class="icon-button" title="Refresh Google session" aria-label="Refresh Google session" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12a9 9 0 0 1-15.4 6.4L3 16"></path>
+            <path d="M3 21v-5h5"></path>
+            <path d="M3 12A9 9 0 0 1 18.4 5.6L21 8"></path>
+            <path d="M21 3v5h-5"></path>
+          </svg>
+        </button>
+      </header>
+
+      <!-- License Status Banner - shown when license is currently valid -->
+      <div id="licenseStatusBanner" class="license-status-banner" style="display: none;" title="License details">
+        <span id="licenseStatusText">&#10003; License Active</span>
+      </div>
+
+      <section class="panel compact">
+        <div class="section-title">
+          <div class="title-with-icon">
+            <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <h2>Session &amp; Engine Status</h2>
+          </div>
+          <span id="loginBadge" class="badge success">Ready</span>
+        </div>
+        <div id="loggedInView" class="logged-in">
+          <div class="user-meta">
+            <span class="badge success">Active Connection</span>
+            <p id="profileName">Google Info Search Active</p>
+          </div>
+          <button id="logout" class="secondary" type="button">Refresh</button>
+        </div>
+      </section>
+
+      <!-- Engine & Serper API Settings Panel -->
+      <section class="panel">
+        <div class="section-title">
+          <div class="title-with-icon">
+            <svg class="section-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+              <line x1="8" y1="21" x2="16" y2="21"></line>
+              <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <h2>Search Provider &amp; API Key</h2>
+          </div>
+          <span id="engineBadge" class="badge info">Serper.dev API</span>
+        </div>
+        <div class="engine-toggle-wrap">
+          <label class="radio-tab">
+            <input type="radio" name="searchEngine" value="serper" checked>
+            <span>Serper.dev API (Fast API)</span>
+          </label>
+          <label class="radio-tab">
+            <input type="radio" name="searchEngine" value="maps">
+            <span>Google Maps Scraping</span>
+          </label>
+        </div>
+        <div id="serperKeyGroup" class="serper-key-group">
+          <label>
+            Serper.dev API Key
+            <input id="serperApiKey" type="password" placeholder="Enter your Serper.dev API Key...">
+          </label>
+          <div class="serper-key-actions">
+            <button id="saveSerperKey" class="micro-btn primary-micro" type="button">Save API Key</button>
+            <span id="serperKeyStatus" class="format-hint">Optional: paste API key for instant places fetch</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI Model (NVIDIA NIM / Gemma) Settings Panel -->
+      <section class="panel">
+        <div class="section-title">
+          <div class="title-with-icon">
+            <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 15h-2v-6h2zm0-8h-2V7h2z"></path>
+            </svg>
+            <h2>AI Model Fallback (NVIDIA NIM / Gemma)</h2>
+          </div>
+          <span id="aiStatusBadge" class="badge info">AI Ready</span>
+        </div>
+        <div class="grid">
+          <label>
+            NVIDIA NIM API Key
+            <input id="aiApiKey" type="password" placeholder="nvapi-...">
+          </label>
+          <label>
+            Model Identifier
+            <input id="aiModelName" type="text" value="google/gemma-2-27b-it" placeholder="e.g. google/gemma-2-27b-it">
+          </label>
+        </div>
+        <label style="margin-top: 6px;">
+          Custom System Extraction Prompt
+          <textarea id="aiSystemPrompt" rows="2" placeholder="You are an executive research AI. Extract business details for {company}..."></textarea>
+        </label>
+        <div class="serper-key-actions" style="margin-top: 6px;">
+          <label class="radio-tab" style="display:inline-flex; align-items:center; gap:6px;">
+            <input id="aiFallbackCheckbox" type="checkbox" checked>
+            <span>Enable AI Model Fallback when search has 0 results or missing CEO</span>
+          </label>
+          <button id="saveAiSettingsBtn" class="micro-btn primary-micro" type="button">Save AI Settings</button>
+        </div>
+        <span id="aiSettingsStatus" class="format-hint">NVIDIA NIM API endpoint: integrate.api.nvidia.com</span>
+      </section>
+
+      <section class="panel nav-panel">
+        <div class="mode-tabs" role="tablist" aria-label="Search mode">
+          <button id="singleMode" class="tab active" type="button" role="tab" aria-selected="true" aria-controls="singlePanel" tabindex="0">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            Single Search
+          </button>
+          <button id="bulkMode" class="tab" type="button" role="tab" aria-selected="false" aria-controls="bulkPanel" tabindex="0">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Bulk Search &amp; ZoomInfo Import
+          </button>
+        </div>
+      </section>
+
+      <section id="singlePanel" class="panel" role="tabpanel" aria-labelledby="singleMode">
+        <div class="section-title">
+          <h2>Single Query</h2>
+          <span class="badge info">Google Info Search</span>
+        </div>
+        <div class="grid">
+          <label>
+            Business Name or Keyword
+            <input id="query" placeholder="e.g. Plumbers, Starbucks, Tech Solutions">
+          </label>
+          <label>
+            Category or Specialty
+            <input id="category" placeholder="e.g. Restaurant, Dentist, Law Firm">
+          </label>
+          <label>
+            Location or zip code
+            <input id="location" placeholder="e.g. Chicago, CA, or 60601">
+          </label>
+        </div>
+        <button id="singleSearch" class="primary" type="button">
+          <span>Search Google Info</span>
+          <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </section>
+
+      <section id="bulkPanel" class="panel" role="tabpanel" aria-labelledby="bulkMode" hidden style="display: none;">
+        <!-- Dedicated ZoomInfo CSV Auto-Merge Import -->
+        <div class="zoom-import-banner">
+          <div class="section-title">
+            <h2>ZoomInfo CSV Import &amp; Auto-Merge</h2>
+            <span class="badge success">Auto-Merge Mode</span>
+          </div>
+          <p class="section-subtitle">Upload ZoomInfo CSV export to search Google place info &amp; merge contacts into 1 file</p>
+          <div class="target-role-bar">
+            <label for="targetRoleInput">Target Role / Search Formula:</label>
+            <input id="targetRoleInput" type="text" value="CEO" placeholder="e.g. CEO, Owner, Founder, President">
+          </div>
+          <label id="zoomFileDrop" class="file-drop zoom-drop" for="zoomFileInput">
+            <input id="zoomFileInput" type="file" accept=".csv">
+            <span class="file-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="12" y1="18" x2="12" y2="12"></line>
+                <line x1="9" y1="15" x2="15" y2="15"></line>
+              </svg>
+            </span>
+            <span class="file-copy">
+              <strong>Upload ZoomInfo Export CSV</strong>
+              <span id="zoomFileName">Supports ZoomInfo CSV exports with contacts &amp; domains</span>
+            </span>
+            <span class="file-action-pill highlight">Import ZoomInfo</span>
+          </label>
+        </div>
+
+        <div class="section-title" style="margin-top: 6px;">
+          <h2>Bulk Standard File / Text Import</h2>
+          <span class="file-pill">CSV / TXT</span>
+        </div>
+        <label id="fileDrop" class="file-drop" for="fileInput">
+          <input id="fileInput" type="file" accept=".csv,.txt,text/csv,text/plain">
+          <span class="file-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 16V4"></path>
+              <path d="m7 9 5-5 5 5"></path>
+              <path d="M20 16v3a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-3"></path>
+            </svg>
+          </span>
+          <span class="file-copy">
+            <strong>Choose file or drop here</strong>
+            <span id="fileName">Supports standard CSV / TXT lists</span>
+          </span>
+          <span class="file-action-pill">Browse</span>
+        </label>
+        <div class="textarea-wrap">
+          <div class="textarea-header">
+            <span>Direct Paste</span>
+            <button id="addBulkText" class="micro-btn" type="button" title="Parse and add text lines to queue">Add to Queue</button>
+          </div>
+          <textarea id="bulkText" rows="4" placeholder="Plumbers in Los Angeles&#10;Dentist, Orthodontics, San Francisco&#10;Starbucks at Seattle&#10;q: Auto Repair, c: Mechanic, l: 90210"></textarea>
+          <span class="format-hint">Supports: plain business keywords, &quot;Keyword in Location&quot;, tabs, or CSV format</span>
+        </div>
+        <div class="bulk-list">
+          <div class="section-title">
+            <div class="title-with-icon">
+              <h2>Imported Queue</h2>
+            </div>
+            <button id="deleteBulkAll" class="danger micro-btn" type="button" disabled>Clear All</button>
+          </div>
+          <label class="result-search">
+            <input id="bulkImportSearch" placeholder="Filter imported rows...">
+          </label>
+          <div class="selection-bar import-selection-bar">
+            <button id="selectBulkPage" type="button" disabled>Select page</button>
+            <button id="selectBulkAll" type="button" disabled>Select all</button>
+            <button id="clearBulkSelection" type="button" disabled>Clear</button>
+            <button id="deleteBulkSelected" class="danger" type="button" disabled>Delete Selected</button>
+            <span id="bulkSelectedCount">0 selected</span>
+          </div>
+          <div class="table-wrap import-table">
+            <table>
+              <thead>
+                <tr>
+                  <th class="select-col">
+                    <input id="selectBulkVisible" type="checkbox" title="Select all imported rows">
+                  </th>
+                  <th>Query / Company</th>
+                  <th>Category / Title</th>
+                  <th>Location / Address</th>
+                  <th class="action-col">Action</th>
+                </tr>
+              </thead>
+              <tbody id="bulkImportBody">
+                <tr><td colspan="5" class="empty">No imported rows</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <span id="bulkImportPageInfo">Page 0 of 0</span>
+            <div class="pager-btns">
+              <button id="bulkImportPrev" type="button" disabled>&larr; Prev</button>
+              <button id="bulkImportNext" type="button" disabled>Next &rarr;</button>
+            </div>
+          </div>
+        </div>
+        <button id="bulkSearch" class="primary" type="button">
+          <span>Run Search &amp; Merge Google Info</span>
+          <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </section>
+
+      <section id="progressPanel" class="panel progress-panel" hidden>
+        <div class="progress-ring-wrap">
+          <div class="progress-ring" aria-hidden="true"></div>
+        </div>
+        <div class="progress-info">
+          <h2 id="progressTitle">Searching</h2>
+          <p id="progressDetail">Preparing request...</p>
+        </div>
+        <!-- Live batch counter & progress bar -->
+        <div class="live-progress-wrap">
+          <div class="live-progress-bar-track">
+            <div id="liveProgressBar" class="live-progress-bar-fill"></div>
+          </div>
+          <p id="liveProgressCount" class="live-progress-count">0 / 0 contacts searched  •  0 records found  •  0%</p>
+          <p class="live-autosave-note">✅ Results auto-saved after each batch — safe to pause anytime</p>
+        </div>
+        <div class="progress-actions">
+          <button id="pauseSearch" type="button">Pause</button>
+          <button id="resumeSearch" type="button" disabled>Resume</button>
+          <button id="stopSearch" class="danger" type="button">Stop</button>
+        </div>
+      </section>
+
+      <section class="results">
+        <div class="results-head">
+          <div>
+            <div class="results-title-wrap">
+              <h2>Results (Merged Google + ZoomInfo)</h2>
+              <span class="live-dot" aria-hidden="true"></span>
+            </div>
+            <p id="resultCount">0 records  -  0 selected</p>
+          </div>
+          <div class="results-actions">
+            <button id="deleteAll" class="danger" type="button" disabled>Delete All</button>
+            <button id="exportCsv" class="export-btn" type="button" disabled title="Export as CSV spreadsheet (Excel / Sheets)">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export CSV
+            </button>
+            <button id="exportTxt" class="export-btn export-txt-btn" type="button" disabled style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 2px 6px rgba(37,99,235,0.35); font-weight: 600;" title="Export as plain text file (.txt) formatted for Notepad / Notepad++">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              📄 Export as TXT (Notepad)
+            </button>
+          </div>
+        </div>
+        <div id="closeWarning" class="close-warning" hidden>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span>Results autosaved. Export or Delete All before closing if needed.</span>
+        </div>
+        <div id="summary" class="summary"></div>
+        <label class="result-search">
+          <input id="resultSearch" placeholder="Filter by name, email, company, address, phone, website...">
+        </label>
+        <div class="selection-bar">
+          <button id="selectPage" type="button" disabled>Select page</button>
+          <button id="selectAll" type="button" disabled>Select all</button>
+          <button id="clearSelection" type="button" disabled>Clear</button>
+          <button id="sortByCeoBtn" type="button" class="btn-sort-ceo" title="Sort contacts with CEO / Executive first">⚡ Sort by CEO</button>
+          <span id="pageInfo">Page 0 of 0</span>
+        </div>
+        <div class="table-wrap">
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th class="select-col">
+                  <input id="selectVisible" type="checkbox" title="Select all results">
+                </th>
+                <th class="sortable-th" data-sort="fullName" title="Click to sort by Full Name">Full Name (Zoom) <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="firstName" title="Click to sort by First Name">First Name <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="email" title="Click to sort by Email">Email <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="zoomCompany" title="Click to sort by Company">Company <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="name" title="Click to sort by Google Business Name">Google Business <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="ceoName" title="Click to sort by CEO Name">CEO / Executive <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="phone" title="Click to sort by Phone">Phone <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="website" title="Click to sort by Website">Website <span class="sort-icon"></span></th>
+                <th class="sortable-th" data-sort="rating" title="Click to sort by Rating">Rating <span class="sort-icon"></span></th>
+              </tr>
+            </thead>
+            <tbody id="resultsBody">
+              <tr><td colspan="10" class="empty">No results yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <div class="pager-btns">
+            <button id="prevPage" type="button" disabled>&larr; Prev</button>
+            <button id="nextPage" type="button" disabled>Next &rarr;</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog id="exportDialog" class="modal export-dialog" aria-labelledby="exportTitle" aria-describedby="exportDescription">
+      <form id="exportForm">
+        <h2 id="exportTitle">Export Options</h2>
+        <p id="exportDescription"></p>
+
+        <fieldset id="exportScopeFieldset" class="export-options" style="margin-bottom: 12px; padding: 10px; border: 1px solid var(--border-color, #334155); border-radius: 8px;">
+          <legend style="font-weight: 600; padding: 0 6px;">Records to Export</legend>
+          <div style="display: flex; gap: 16px; margin: 4px 0;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="exportScope" value="all" checked>
+              <span id="exportScopeAllLabel" style="font-weight: 600; color: #10b981;">🌐 All Results (Bring All)</span>
+            </label>
+            <label id="exportScopeSelectedWrapper" style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="exportScope" value="selected">
+              <span id="exportScopeSelectedLabel" style="font-weight: 600;">☑ Selected Rows Only (0)</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="export-options" style="margin-bottom: 12px; padding: 10px; border: 1px solid var(--border-color, #334155); border-radius: 8px;">
+          <legend style="font-weight: 600; padding: 0 6px;">Output File Format</legend>
+          <div style="display: flex; gap: 16px; margin: 4px 0;">
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="exportFileType" value="txt" checked>
+              <span style="font-weight: 600; color: #3b82f6;">📄 TXT for Notepad (.txt)</span>
+            </label>
+            <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <input type="radio" name="exportFileType" value="csv">
+              <span style="font-weight: 600;">📊 CSV Spreadsheet (.csv)</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset id="exportPresets" class="export-options">
+          <legend>Choose Details &amp; Layout</legend>
+          <label><input type="radio" name="exportPreset" value="notepad_clean" checked><span>⭐ Clean Notepad Format (Email, Name, 2-Step Address, Google Info, ending with "=")</span></label>
+          <label><input type="radio" name="exportPreset" value="contacts"><span>🎯 Contacts &amp; CEO / Phone / Website only (No Full Name)</span></label>
+          <label><input type="radio" name="exportPreset" value="all"><span>🌐 All Details (ZoomInfo Contacts + Merged Google Info + CEO)</span></label>
+          <label><input type="radio" name="exportPreset" value="client_block"><span>📋 Client Demarcated Template (Template Labels with "=")</span></label>
+          <label><input type="radio" name="exportPreset" value="custom"><span>✏️ Custom Fields (Use checkboxes below)</span></label>
+        </fieldset>
+        <fieldset id="exportFields" class="export-options">
+          <legend>Customize &amp; Arrange Export Columns (CSV &amp; TXT Notepad)</legend>
+          <div style="font-size: 11px; color: var(--muted, #94a3b8); margin-bottom: 8px;">Check or uncheck any item to include or remove it. Drag items to reorder columns.</div>
+          <div id="exportFieldsList" class="export-fields-list"></div>
+        </fieldset>
+        <div class="modal-actions">
+          <button id="exportCancel" type="button">Cancel</button>
+          <button id="exportDownload" class="export-btn" type="submit">Download .TXT for Notepad</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="confirmOverlay" class="modal-overlay" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="modal-header">
+          <div class="modal-alert-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <h2 id="confirmTitle">Confirm Action</h2>
+        </div>
+        <p id="confirmMessage"></p>
+        <div class="modal-actions">
+          <button id="confirmCancel" type="button">Cancel</button>
+          <button id="confirmOk" class="danger" type="button">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- License Activation Overlay (shown when license is missing or not activated) -->
+    <div id="lockOverlay" class="security-overlay" style="display: none;">
+      <div class="security-overlay-card">
+        <div class="security-overlay-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2>Activate Google &amp; ZoomInfo</h2>
+        <p class="security-overlay-desc">Enter your ZoomInfo license key to activate this extension. Each key binds to this machine on first use.</p>
+
+        <div class="security-input-group">
+          <input type="text" id="licenseKeyInput" class="security-overlay-input" placeholder="ZIM-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" autocomplete="off" spellcheck="false">
+          <div id="lockErrorMsg" class="security-error-msg" style="display: none;"></div>
+          <div id="lockSuccessMsg" class="security-success-msg" style="display: none;"></div>
+        </div>
+
+        <button id="btnActivateLicense" class="security-overlay-btn primary" type="button">
+          <span id="btnActivateLabel">Activate Extension</span>
+        </button>
+
+        <div class="security-machine-info">
+          <div class="machine-info-label">This machine's ID</div>
+          <div id="machineIdDisplay" class="machine-id-text">-</div>
+          <div class="machine-info-hint">Share this ID with your administrator if you need a license pre-bound to this machine.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- License Invalid Overlay (shown when license is administratively expired or deactivated) -->
+    <div id="licenseInvalidOverlay" class="security-overlay" style="display: none;">
+      <div class="security-overlay-card danger-card">
+        <div class="security-overlay-icon danger-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </div>
+        <h2 id="licenseInvalidHeader">License Inactive</h2>
+        <p id="licenseInvalidBody" class="security-overlay-desc">Your ZoomInfo license is no longer valid or has expired. Please re-enter a valid license key.</p>
+        <div id="licenseInvalidKey" class="invalid-key-display" style="display: none;"></div>
+        <button id="btnLicenseRetry" class="security-overlay-btn primary" type="button">Enter New Key</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
